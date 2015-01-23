@@ -163,4 +163,8 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <PropertyGroup>
+    <PostBuildEvent>Copy "$(SolutionDir)Diaclo\Libraries\FMod\fmodex.dll" "$(ProjectDir)$(OutDir)fmodex.dll"
+Copy "$(SolutionDir)Diaclo\spawn.txt" "$(ProjectDir)$(OutDir)spawn.txt"</PostBuildEvent>
+  </PropertyGroup>
 </Project>
