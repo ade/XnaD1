@@ -1,5 +1,5 @@
 # XnaD1
-Old re-implementation of Diablo 1 in XNA, no longer maintained.
+Old (very incomplete) re-implementation of Diablo 1 in XNA, no longer maintained.
 
 Demo video: https://www.youtube.com/watch?v=o9QQH2Wt1QQ
 
