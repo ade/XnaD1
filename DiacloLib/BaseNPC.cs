@@ -74,6 +74,18 @@ namespace DiacloLib
             set { this.walkSpeed = value; }
         }
 
+        public BaseNPC(World w, int areaid, Point pos, int ID)
+        {
+            //logic
+            this.ID = ID;
+            this.World = w;
+            w.AddNPC(this);
+            this.SetLocation(areaid, pos);
+            this.Area.npcs.Add(this);
+            
+            
+        }
+
         public override void Update(float secondsPassed)
         {
             //if (this.action == AIAction.Moving && this.TileMoveProgress < 1)

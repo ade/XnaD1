@@ -23,7 +23,7 @@ namespace DiacloLib
         public Point TileMoveFrom;
         public Point TileMoveTo;
         public float TileMoveProgress = 1;
-        public float TileMoveSpeed = 2.5f;
+        public float TileMovePerSecondSpeed = 2.5f; //(0.4 duration for 1 tile)
 
         //Stats
         public int MaxHP;
@@ -46,7 +46,7 @@ namespace DiacloLib
         }
         public Point Position {
             get { return _position; }
-            set { 
+            protected set { 
                 if(this._areaid != -1)
                     this.Area.GetSquare(this._position).Creature = null;
                 this._position = value;
@@ -63,7 +63,7 @@ namespace DiacloLib
                     this.Area.Players.Remove((Player)this);
             }
             this._areaid = areaid;
-            this.Position = pos;
+            this._position = pos;
             this.Area.GetSquare(this.Position).Creature = this;
             if (this is Player)
                 this.Area.Players.Add((Player)this);
@@ -75,28 +75,18 @@ namespace DiacloLib
                 this.TileMoveFrom = this.Position;
                 this.TileMoveTo = to;
                 this.Direction = GameMechanics.AdjacentTileDirection(this.TileMoveFrom, to);
-                this.TileMoveSpeed = tilesPerSecond;
+                this.TileMovePerSecondSpeed = tilesPerSecond;
                 return true;
             } else{
                 return false;
             }
         }
-        public virtual void FinishMove()
+        public virtual void StopMove()
         {
-            this.Position = TileMoveTo;
             this.TileMoveProgress = 1;
             this.PositionDeviation = new Point(0, 0);
         }
-        public virtual void RevertMove()
-        {
-            Square origin = this.Area.GetSquare(this.TileMoveFrom);
-            if(origin.getNPC() == this || (origin.getNPC()==null && origin.getPlayer()==null))
-            {
-                this.Position = this.TileMoveFrom;
-            }
-            this.TileMoveProgress = 1;
-            this.PositionDeviation = new Point(0, 0);
-        }
+
         public virtual void Update(float secondsPassed)
         {
             if (this.TileMoveProgress < 1)
@@ -105,7 +95,7 @@ namespace DiacloLib
         public void TileMoveIncrement(float secondsPassed)
         {
 
-            this.TileMoveProgress += secondsPassed * this.TileMoveSpeed;
+            this.TileMoveProgress += secondsPassed * this.TileMovePerSecondSpeed;
             int deviationOffset = 0; //moving away from original tile (0), or approaching the target one? (-1)
             if (this.TileMoveProgress > 1)
             {

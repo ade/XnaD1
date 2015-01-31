@@ -38,20 +38,21 @@ namespace Diaclo
             this.Character = c;
             this.RefreshAttributes();
             this.CurrentHP = this.MaxHP;
-            this.SetAction(PlayerAction.Idle);
+            this.StartAction(PlayerAction.Idle,0);
         }
-        public override void SetAction(PlayerAction s)
+        protected override void StartAction(PlayerAction s, float duration)
         {
             PlayerAction old = this.Action;
-            base.SetAction(s);
+            base.StartAction(s, duration);
             this.UpdateStateAnimation(old, s);
-
         }
         public virtual void OverrideStatus(PlayerAction a, Direction d, Point position, float actionDuration, float actionEndtime, int currenthp)
         {
-            this.SetAction(a);
+            this.StopMove();
             this.Direction = d;
             this.Position = position;
+            this.StartAction(a, 0);
+            GameConsole.Write("Player received a status override (new status: " + a.ToString() + ")", ConsoleMessageTypes.Debug);
             this.actionElapsed = actionDuration;
             this.actionEndTime = actionEndTime;
             this.CurrentHP = currenthp;
@@ -250,15 +251,6 @@ namespace Diaclo
             }
             return "";
 
-        }
-
-        internal void Die()
-        {
-            
-            this.StartAction(PlayerAction.Dead, 0);
-            
-
-            
         }
 
         internal void CacheAnimations()

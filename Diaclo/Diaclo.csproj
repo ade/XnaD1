@@ -8,7 +8,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Diaclo</RootNamespace>
     <AssemblyName>Diaclo</AssemblyName>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <XnaFrameworkVersion>v3.1</XnaFrameworkVersion>
     <XnaPlatform>Windows</XnaPlatform>
     <XnaCrossPlatformGroupID>f77d7ed2-7a09-47c4-90e9-59d97041be36</XnaCrossPlatformGroupID>
@@ -69,6 +69,9 @@
     </Reference>
     <Reference Include="System">
       <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Xml">
@@ -164,7 +167,8 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>Copy "$(SolutionDir)Diaclo\Libraries\FMod\fmodex.dll" "$(ProjectDir)$(OutDir)fmodex.dll"
-Copy "$(SolutionDir)Diaclo\spawn.txt" "$(ProjectDir)$(OutDir)spawn.txt"</PostBuildEvent>
+      <PostBuildEvent>Copy "$(SolutionDir)Diaclo\Libraries\FMod\fmodex.dll" "$(ProjectDir)$(OutDir)fmodex.dll"
+  Copy "$(SolutionDir)Diaclo\spawn.txt" "$(ProjectDir)$(OutDir)spawn.txt"</PostBuildEvent>
   </PropertyGroup>
+
 </Project>

@@ -112,10 +112,6 @@ namespace Diaclo
             SetupState(ClientStates.MainMenu);
         }
 
-        /// <summary>
-        /// UnloadContent will be called once per game and is the place to unload
-        /// all content.
-        /// </summary>
         protected override void UnloadContent()
         {
             // TODO: Unload any non ContentManager content here
@@ -211,7 +207,11 @@ namespace Diaclo
             }
             GameConsole.ReportPerformance(PerformanceCategory.ClientNetworkUpdate, sw.ElapsedTicks);
         }
-
+        /// <summary>
+        /// Process an incoming server (game-specific) message
+        /// </summary>
+        /// <param name="netBuffer"></param>
+        /// <param name="netClient"></param>
         private void ProcessNetMsg(NetBuffer netBuffer, NetClient netClient)
         {
             ProtocolServerToClient command = (ProtocolServerToClient) netBuffer.ReadUInt16();
@@ -247,19 +247,8 @@ namespace Diaclo
                     {
                         ushort area_id = netBuffer.ReadUInt16();
                         Point pos = Serializer.ReadPoint(netBuffer);
-                        
-                        MyPlayer.SetLocation(area_id, pos);
-                        
-                        GameConsole.Write("Loading...", ConsoleMessageTypes.Info);
-                        //Push loading graphics to screen
-                        this.State = ClientStates.Loading;
-                        this.Tick();
 
-                        GameContent.LoadArea(gameState.World.Areas[MyPlayer.AreaID], MyPlayer);
-                        View.Position = new Point(pos.X, pos.Y);
-                        GameConsole.Write("Spawning @ area " + area_id + ", " + pos.ToString(), ConsoleMessageTypes.Debug);
-                        GameConsole.Write("Entering " + this.MyPlayer.Area.Name);
-
+                        this.SpawnPlayer(area_id, pos);
                         SetupState(ClientStates.Playing);
                     }
                     break;
@@ -277,14 +266,14 @@ namespace Diaclo
                         else
                         {
                             //warp to correction (todo)
-                            MyPlayer.RevertMove();
-                            MyPlayer.Position = correction;
+                            MyPlayer.StopMove();
+                            MyPlayer.SetLocation(MyPlayer.AreaID, correction);
                             WalkPath = null;
                         }
                     }
                     break;
                 case ProtocolServerToClient.NPCUpdate:
-                    ClientSerializer.UpdateNPC(netBuffer, MyPlayer.Area);
+                    ClientSerializer.UpdateNPC(netBuffer, gameState.World);
                     break;
                 case ProtocolServerToClient.BattleResult:
                     BattleResult result = ClientSerializer.ReadBattleResult(netBuffer, gameState);
@@ -300,6 +289,21 @@ namespace Diaclo
                     ClientSerializer.ReadCharacterUpdate(netBuffer, MyPlayer);
                     break;
             }
+        }
+
+        private void SpawnPlayer(ushort area_id, Point pos)
+        {
+            MyPlayer.SetLocation(area_id, pos);
+
+            //Push loading graphics to screen
+            GameConsole.Write("Loading...", ConsoleMessageTypes.Info);
+            this.State = ClientStates.Loading;
+            this.Tick();
+
+            GameContent.LoadArea(gameState.World.Areas[MyPlayer.AreaID], MyPlayer);
+            View.Position = new Point(pos.X, pos.Y);
+            GameConsole.Write("Spawning @ area " + area_id + ", " + pos.ToString(), ConsoleMessageTypes.Debug);
+            GameConsole.Write("Entering " + this.MyPlayer.Area.Name);
         }
         public void OnMainMenuSelect(int index, object tag)
         {
@@ -407,6 +411,7 @@ namespace Diaclo
                     if (this.UI.ElementVisible(UIPanelType.ControlPanel)) this.UI.ToggleDisplay(UIPanelType.ControlPanel);
                     if (this.UI.ElementVisible(UIPanelType.CharacterPane)) this.UI.ToggleDisplay(UIPanelType.CharacterPane);
                     this.State = ClientStates.PlayerDead;
+                    this.queuedAction = PlayerAction.Idle;
                     break;
             }
         }
@@ -441,7 +446,7 @@ namespace Diaclo
                 {
                     //Player dies
                     GameConsole.Write("You die.");
-                    SetupState(ClientStates.PlayerDead);
+                    this.SetupState(ClientStates.PlayerDead);
                 }
             }
         }

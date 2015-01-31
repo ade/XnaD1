@@ -77,6 +77,7 @@ namespace DiacloServer
                 this.Character.Level++;
                 this.Character.LevelUpPoints += 5;
                 this.CurrentHP = this.MaxHP;
+                Server.OnPlayerStatusChanged(this);
                 switch (this.Character.Class)
                 {
                     case CharacterClass.Warrior:
@@ -86,6 +87,53 @@ namespace DiacloServer
                 }
             }
             return exp;
+        }
+        /// <summary>
+        /// Complete current tile move
+        /// </summary>
+        public virtual void FinishMove()
+        {
+            this.Position = TileMoveTo;
+            this.StopMove();
+        }
+        /// <summary>
+        /// Cancel current tile move and return to origin
+        /// </summary>
+        public virtual void RevertMove()
+        {
+            Square origin = this.Area.GetSquare(this.TileMoveFrom);
+            if (origin.getPlayer() == this || (origin.getNPC() == null && origin.getPlayer() == null))
+            {
+                this.Position = this.TileMoveFrom;
+            }
+            this.StopMove();
+        }
+        protected override void StartAction(PlayerAction playerAction, float duration)
+        {
+            PlayerAction old = this.Action;
+            base.StartAction(playerAction, duration);
+            if (this.Action != PlayerAction.Idle && old == PlayerAction.Walk)
+            {
+                this.StopMove();
+                this.ActionFailed(PlayerAction.Walk);
+            }
+        }
+        /// <summary>
+        /// Change a player's status to idle.
+        /// </summary>
+        /// <param name="sendToClient">Send updated status to client?</param>
+        public void SetIdle(bool sendToClient)
+        {
+            base.SetIdle();
+            if(sendToClient)
+                Server.OnPlayerStatusChanged(this);
+        }
+        /// <summary>
+        /// Change a player's status to idle. Automatically notifies client.
+        /// </summary>
+        public override void SetIdle()
+        {
+            this.SetIdle(true);
         }
     }
 }

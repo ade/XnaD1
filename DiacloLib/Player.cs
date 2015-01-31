@@ -79,7 +79,7 @@ namespace DiacloLib
             get { return this._attackspeed; }
         }
         
-        private PlayerAction action;
+        protected PlayerAction action;
         public PlayerAction Action
         {
             get
@@ -136,21 +136,6 @@ namespace DiacloLib
             return ret;
         }
 
-        public override void FinishMove()
-        {
-            this.SetAction(PlayerAction.Idle);
-            base.FinishMove();
-        }
-        public override void RevertMove()
-        {
-            this.SetAction(PlayerAction.Idle);
-            base.RevertMove();
-        }
-        public virtual void SetAction(PlayerAction s)
-        {
-            this.action = s;
-        }
-
         public bool MeleeAttack(Point position)
         {
             bool result = false;
@@ -173,19 +158,13 @@ namespace DiacloLib
         public virtual void ActionFailed(PlayerAction a)
         {
         }
-        public void StartAction(PlayerAction playerAction, float duration)
+        protected virtual void StartAction(PlayerAction playerAction, float duration)
         {
             PlayerAction old = this.Action;
 
-            actionEndTime = duration;
-            actionElapsed = 0;
-            this.SetAction(playerAction);
-
-            if (old == PlayerAction.Walk)
-            {
-                this.RevertMove();
-                this.ActionFailed(PlayerAction.Walk);
-            }
+            this.actionEndTime = duration;
+            this.actionElapsed = 0;
+            this.action = playerAction;
         }
 
 
@@ -203,7 +182,11 @@ namespace DiacloLib
             }
 
         }
-
+        public virtual void SetIdle()
+        {
+            this.StartAction(PlayerAction.Idle, 0);
+            this.StopMove();
+        }
 
         #region IGameUpdateable Members
 
@@ -212,10 +195,12 @@ namespace DiacloLib
             base.Update(secondsPassed);
 
             this.actionElapsed += secondsPassed;
+
+            //Check if current action has expired
             if (this.Action != PlayerAction.Idle && this.Action != PlayerAction.Dead && this.actionElapsed >= this.actionEndTime)
             {
                 this.ActionSuccessful(this.action);
-                this.SetAction(PlayerAction.Idle);
+                this.StartAction(PlayerAction.Idle, 0);
                 
             }
         }

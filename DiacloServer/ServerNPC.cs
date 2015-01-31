@@ -198,15 +198,9 @@ namespace DiacloServer
                 Server.OnNPCStatusChange(this);
             }
         }
-        public ServerNPC(World w, int areaid, Point pos, GameState gs, int ID)
+        public ServerNPC(World w, int areaid, Point pos, int ID): base(w,areaid,pos,ID)
         {
             this.playerThreat = new Dictionary<ServerPlayer,int>();
-
-            //logic
-            this.World = w;
-            this.SetLocation(areaid, pos);
-            this.ID = ID;
-            w.Areas[0].npcs.Add(this);
 
         }
         public void MergeTemplate(MonsterTemplate t)
@@ -356,14 +350,14 @@ namespace DiacloServer
             }
             return ret;
         }
-        public static ServerNPC FromTemplate(GameState gs, int areaID, Point position, MonsterTemplate t, int ID)
+        public static ServerNPC FromTemplate(World w, int areaID, Point position, MonsterTemplate t, int ID)
         {
             ServerNPC ret;
             switch (t.AIType)
             {
                 case MonsterAITypes.Skeleton:
                 default:
-                    ret = new AISkeleton(gs.World, areaID, position, gs, ID);
+                    ret = new AISkeleton(w, areaID, position, ID);
                     break;
             }
 
@@ -371,6 +365,26 @@ namespace DiacloServer
             ret.Template = t;
 
             return ret;
+        }
+        /// <summary>
+        /// Complete current tile move
+        /// </summary>
+        public virtual void FinishMove()
+        {
+            this.Position = TileMoveTo;
+            this.StopMove();
+        }
+        /// <summary>
+        /// Cancel current tile move and return to origin
+        /// </summary>
+        public virtual void RevertMove()
+        {
+            Square origin = this.Area.GetSquare(this.TileMoveFrom);
+            if (origin.getNPC() == this || (origin.getNPC() == null && origin.getPlayer() == null))
+            {
+                this.Position = this.TileMoveFrom;
+            }
+            this.StopMove();
         }
     }
 }

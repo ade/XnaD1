@@ -115,6 +115,7 @@
     <Compile Include="Serializer.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Square.cs" />
+    <Compile Include="SquareEntity.cs" />
     <Compile Include="Tileset.cs" />
     <Compile Include="TilesetAnimation.cs" />
     <Compile Include="World.cs" />

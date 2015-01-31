@@ -12,6 +12,7 @@ namespace DiacloLib
     {
         public Area[] Areas;
         private Dictionary<int,BaseNPC> npcList;
+        private int npcID = 0;
         public World()
         {
             npcList = new Dictionary<int, BaseNPC>();
@@ -27,6 +28,14 @@ namespace DiacloLib
         public void AddNPC(BaseNPC npc)
         {
             this.npcList.Add(npc.ID, npc);
+        }
+        /// <summary>
+        /// Creates and returns the next available monster ID
+        /// </summary>
+        /// <returns></returns>
+        public int NewNpcID()
+        {
+            return npcID++;
         }
     }
 }

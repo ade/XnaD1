@@ -9,12 +9,10 @@ namespace DiacloServer.AITemplates
     public class AISkeleton: ServerNPC
     {
         private bool debugmessages = false;
-        public AISkeleton(World w, int areaID, Point pos, GameState gs, int ID): base(w,areaID,pos,gs,ID)
+        public AISkeleton(World w, int areaID, Point pos, int ID): base(w,areaID,pos,ID)
         {
-            
             this.idle = true;
-            this.SetState(AIState.Inactive);
-            
+            this.SetState(AIState.Inactive);   
         }
         public override void Update(float secondsPassed)
         {

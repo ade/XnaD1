@@ -1,4 +1,0 @@
-C:\Users\ade\Documents\Visual Studio 2008\Projects\Diaclo\Diaclo\Content\obj\x86\Debug\ResolveAssemblyReference.cache
-C:\projects\src\Diaclo\Diaclo\Content\obj\x86\Debug\ResolveAssemblyReference.cache
-C:\legacy\projects\diaclo\src\Diaclo\Diaclo\Content\obj\x86\Debug\ResolveAssemblyReference.cache
-C:\ade\project\Diaclo\Diaclo\Diaclo\Content\obj\x86\Debug\ResolveAssemblyReference.cache

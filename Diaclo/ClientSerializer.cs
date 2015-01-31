@@ -49,6 +49,7 @@ namespace Diaclo
             ushort areaid = b.ReadUInt16();
             Area a = w.Areas[areaid];
             int npcs = b.ReadInt32();
+            a.npcs.Clear();
             for (int i = 0; i < npcs; i++)
             {
                 a.npcs.Add(ReadNPC(b, w));
@@ -57,17 +58,19 @@ namespace Diaclo
         public static BaseNPC ReadNPC(NetBuffer b, World w)
         {
             int id = b.ReadInt32();
+            int areaid = b.ReadInt32();
+            Direction direction = (Direction)b.ReadByte();
+            Point position = b.ReadPoint();
+            Point PositionDeviation = b.ReadPoint();
+            Point TileMoveFrom = b.ReadPoint();
+            float TileMoveProgress = b.ReadFloat();
+            Point TileMoveTo = b.ReadPoint();
+
             ClientNPC n;
             n = (ClientNPC)w.GetNPCById(id);
             if (n == null)
-            {
-                n = new ClientNPC();
-                n.ID = id;
-                n.World = w;
-                w.AddNPC(n);
-            }
-            
-            n.SetLocation(b.ReadInt32(), n.Position);
+                n = new ClientNPC(w, areaid, position, id);
+          
             n.AttackSpeed = b.ReadFloat();
             n.HitRecoverySpeed = b.ReadFloat();
             n.WalkSpeed = b.ReadFloat();
@@ -82,8 +85,7 @@ namespace Diaclo
             n.SetState((AIState)b.ReadByte());
             n.SetAction((AIAction)b.ReadByte());
             n.UpdateAnimation();
-            UpdateWorldCreature(b, (WorldCreature)n);
-
+            
             return (BaseNPC)n;
         }
         public static Square ReadSquare(NetBuffer b)
@@ -101,20 +103,27 @@ namespace Diaclo
         public static void UpdateWorldCreature(NetBuffer b, WorldCreature o)
         {
             o.Direction = (Direction)b.ReadByte();
-            o.Position = b.ReadPoint();
+            o.SetLocation(o.AreaID, b.ReadPoint());
             o.PositionDeviation = b.ReadPoint();
             o.TileMoveFrom = b.ReadPoint();
             o.TileMoveProgress = b.ReadFloat();
             o.TileMoveTo = b.ReadPoint();
         }
-        public static void UpdateNPC(NetBuffer b, Area a)
+        public static void UpdateNPC(NetBuffer b, World w)
         {
             int id = b.ReadInt32();
-            BaseNPC n = a.npcs[id];
-            UpdateWorldCreature(b, (WorldCreature)n);
-            n.SetAction((AIAction)b.ReadByte());
-            n.SetState((AIState)b.ReadByte());
             
+            BaseNPC n = w.GetNPCById(id);
+            if (n != null)
+            {
+                UpdateWorldCreature(b, (WorldCreature)n);
+                n.SetAction((AIAction)b.ReadByte());
+                n.SetState((AIState)b.ReadByte());
+            }
+            else
+            {
+                GameConsole.Write("ClientSerializer.UpdateNPC: ID not found: " + id, ConsoleMessageTypes.Debug);
+            }
         }
 
         internal static BattleResult ReadBattleResult(NetBuffer b, GameState gameState)

@@ -84,9 +84,15 @@ namespace DiacloLib
         }
         public static void WriteNPC(NetBuffer b, BaseNPC n)
         {
-            //"thin" data
             b.Write((int)n.ID);
             b.Write((int)n.AreaID);
+            b.Write((byte)n.Direction);
+            b.Write((Point)n.Position);
+            b.Write((Point)n.PositionDeviation);
+            b.Write((Point)n.TileMoveFrom);
+            b.Write((float)n.TileMoveProgress);
+            b.Write((Point)n.TileMoveTo);
+
             b.Write((float)n.AttackSpeed);
             b.Write((float)n.HitRecoverySpeed);
             b.Write((float)n.WalkSpeed);
@@ -101,8 +107,6 @@ namespace DiacloLib
             b.Write((byte)n.State);
             b.Write((byte)n.Action);
             
-            //superclass attribs
-            WriteWorldCreature(b, (WorldCreature)n);
             
         }
 
@@ -158,6 +162,7 @@ namespace DiacloLib
             b.Write((uint)c.Experience);
             b.Write((ushort)c.Level);
             b.Write((ushort)c.LevelUpPoints);
+            
         }
 
         /*

@@ -27,7 +27,7 @@ namespace Diaclo
         private Direction lastDirection;
         private string[] sounds;
         private Random rnd = new Random();
-        public ClientNPC()
+        public ClientNPC(World w, int areaid, Point position, int ID): base(w,areaid,position,ID)
         {
             this.SetState(AIState.Active); //Client mode: always active
             

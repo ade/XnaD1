@@ -43,13 +43,13 @@ namespace DiacloServer
 
         public static void RunServer(object o)
         {
-            ServerArguments a = (ServerArguments)o;
-            GameConsole.Write("Starting server ("+a.port + ") max="+a.clients, ConsoleMessageTypes.Info);
+            ServerArguments srvArguments = (ServerArguments)o;
+            GameConsole.Write("Starting server ("+srvArguments.port + ") max="+srvArguments.clients, ConsoleMessageTypes.Info);
 
-            Server.MaxPlayers = a.clients;
+            Server.MaxPlayers = srvArguments.clients;
             NetConfiguration config = new NetConfiguration("DiacloGame");
             config.MaxConnections = Server.MaxPlayers + 2;
-            config.Port = a.port;
+            config.Port = srvArguments.port;
             
             netServer = new NetServer(config);
             netServer.SetMessageTypeEnabled(NetMessageType.ConnectionApproval, true);
@@ -136,19 +136,110 @@ namespace DiacloServer
                 
                 Thread.Sleep(1);
             }
-            GameConsole.Write("Server shutting down");
-            netServer.Shutdown("Server shutdown");
+            GameConsole.Write("Server shutting down.");
+            netServer.Shutdown("Server loop finished");
 
         }
 
         private static void InitWorld()
         {
+            //Create the world object
             gameState.World = new World();
-            gameState.World.Areas = new Area[1];
+            gameState.World.Areas = new Area[4];
 
+            //Area 0, town. This is static content.
             LoadTown();
                        
-          
+            //Level 1 (demonstration code, to be replaced with a random dungeon generator...)
+            Area a = (gameState.World.Areas[1] = new Area(10, 80));
+            for (int x = 0; x < a.Width; x++)
+            {
+                for (int y = 0; y < a.Height; y++)
+                {
+                    Square s = new Square();
+                    s.Frame[14] = 13; //13 and 14 are numbers from the internal diablo graphics file. they are the indeces to one ground tile (left and right side).
+                    s.Frame[15] = 14;
+                    s.LevelID = 1;
+                    s.Position = new Point(x, y);
+                    a.SetSquare(s.Position, s);
+                }
+            }
+
+            //Demonstration teleporter L1 -> town
+            Square duntele = a.GetSquare(new Point(0, a.Height-1));
+            duntele.Entity = new SquareEntity();
+            duntele.Entity.Type = SquareEntityType.Trigger_Teleport;
+            duntele.Entity.TargetArea = 0;
+            duntele.Entity.TargetPos = new Point(79, 70);
+            duntele.Frame[14] = 1043;
+            duntele.Frame[15] = 1044;
+
+            //Demonstration teleporter L1 -> L2
+            duntele = a.GetSquare(new Point(0, 0));
+            duntele.Entity = new SquareEntity();
+            duntele.Entity.Type = SquareEntityType.Trigger_Teleport;
+            duntele.Entity.TargetArea = 2;
+            duntele.Entity.TargetPos = new Point(79, 0);
+            duntele.Frame[14] = 1043;
+            duntele.Frame[15] = 1044;
+
+            //Level 2 demonstration code
+            a = (gameState.World.Areas[2] = new Area(80, 10));
+            for (int x = 0; x < a.Width; x++)
+            {
+                for (int y = 0; y < a.Height; y++)
+                {
+                    Square s = new Square();
+                    s.Frame[14] = 13; 
+                    s.Frame[15] = 14;
+                    s.LevelID = 1; //Graphic file level, not actual logical level
+                    s.Position = new Point(x, y);
+                    a.SetSquare(s.Position, s);
+                }
+            }
+
+            //Demonstration teleporter L2 -> L1
+            duntele = a.GetSquare(new Point(a.Width - 1, 0));
+            duntele.Entity = new SquareEntity();
+            duntele.Entity.Type = SquareEntityType.Trigger_Teleport;
+            duntele.Entity.TargetArea = 1;
+            duntele.Entity.TargetPos = new Point(0, 0);
+            duntele.Frame[14] = 1043;
+            duntele.Frame[15] = 1044;
+
+            //Demonstration teleporter L2 -> L3
+            duntele = a.GetSquare(new Point(a.Width - 1, 1));
+            duntele.Entity = new SquareEntity();
+            duntele.Entity.Type = SquareEntityType.Trigger_Teleport;
+            duntele.Entity.TargetArea = 3;
+            duntele.Entity.TargetPos = new Point(0, 0);
+            duntele.Frame[14] = 1043;
+            duntele.Frame[15] = 1044;
+
+
+            //Level 3 demonstration code
+            a = (gameState.World.Areas[3] = new Area(30, 30));
+            for (int x = 0; x < a.Width; x++)
+            {
+                for (int y = 0; y < a.Height; y++)
+                {
+                    Square s = new Square();
+                    s.Frame[14] = 13;
+                    s.Frame[15] = 14;
+                    s.LevelID = 1; //Graphic file level, not actual logical level
+                    s.Position = new Point(x, y);
+                    a.SetSquare(s.Position, s);
+                }
+            }
+
+            //Demonstration teleporter L3 -> L2
+            duntele = a.GetSquare(new Point(0, 0));
+            duntele.Entity = new SquareEntity();
+            duntele.Entity.Type = SquareEntityType.Trigger_Teleport;
+            duntele.Entity.TargetArea = 2;
+            duntele.Entity.TargetPos = new Point(0, 0);
+            duntele.Frame[14] = 1043;
+            duntele.Frame[15] = 1044;
         }
         private static void CreateTestEnvironment()
         {
@@ -183,15 +274,44 @@ namespace DiacloServer
         }
         private static void MakeNPCs(World w)
         {
-            int id = 0;
-            for (int x = 65; x < 66; x++)
+            Random rnd = new Random();
+            Area area = w.Areas[1]; //Demonstration level
+
+            //Level 1 (demonstration code)
+            for (int x = 1; x < area.Width; x++)
             {
-                for (int y = 66; y < 67; y++)
+                for (int y = 1; y < area.Height; y++)
                 {
-                    //AISkeleton skeleton = new AISkeleton(gameState.World, 0, new Point(x, y), gameState, 1, 10, NPCType.Undead, 20, 5, 1, 500, 5, 20, 1, 0.65f, 0.4f, 0.4f, 0.3f);
-                    ServerNPC npc = ServerNPC.FromTemplate(gameState, 0, new Point(x, y), ImportedContent.MonsterTemplates[0], id);
-                    
-                    id++;
+                    if (rnd.Next(1, 20) == 1)
+                    {
+                        ServerNPC npc = ServerNPC.FromTemplate(gameState.World, 1, new Point(x, y), ImportedContent.MonsterTemplates[0], gameState.World.NewNpcID());
+                    }
+                }
+            }
+
+            //Level 2 (demonstration code)
+            area = w.Areas[2];
+            for (int x = 1; x < area.Width; x++)
+            {
+                for (int y = 1; y < area.Height; y++)
+                {
+                    if (rnd.Next(1, 20) == 1)
+                    {
+                        ServerNPC npc = ServerNPC.FromTemplate(gameState.World, 2, new Point(x, y), ImportedContent.MonsterTemplates[1], gameState.World.NewNpcID());
+                    }
+                }
+            }
+
+            //Level 3 (demonstration code)
+            area = w.Areas[3];
+            for (int x = 1; x < area.Width; x++)
+            {
+                for (int y = 1; y < area.Height; y++)
+                {
+                    if (rnd.Next(1, 40) == 1)
+                    {
+                        ServerNPC npc = ServerNPC.FromTemplate(gameState.World, 3, new Point(x, y), ImportedContent.MonsterTemplates[2], gameState.World.NewNpcID());
+                    }
                 }
             }
         }
@@ -229,6 +349,16 @@ namespace DiacloServer
                     index++;
                 }
             }
+
+
+            //Demonstration teleporter
+            Square duntele = gameState.World.Areas[0].GetSquare(new Point(80, 70));
+            duntele.Entity = new SquareEntity();
+            duntele.Entity.Type = SquareEntityType.Trigger_Teleport;
+            duntele.Entity.TargetArea = 1;
+            duntele.Entity.TargetPos = new Point(0,79);
+            duntele.Frame[14] = 1710;
+            duntele.Frame[15] = 1711;
         }
 
         public static void GameStateUpdate(float secondsPassed)
@@ -253,6 +383,11 @@ namespace DiacloServer
             }
             return -1;
         }
+        /// <summary>
+        /// Process a incoming client (game-specific) message
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="sender"></param>
         private static void ProcessGameMsg(NetBuffer buffer, NetConnection sender)
         {
             ServerPlayer p = getPlayerByConnection(sender);
@@ -288,7 +423,7 @@ namespace DiacloServer
                     sender.SendMessage(map, NetChannel.ReliableInOrder1);
 
                     //Send spawn command
-                    Server.PlayerSpawn(p, 0, FindSpawnPoint(0));
+                    Server.SpawnPlayer(p, 0, FindSpawnPoint(0));
                     
                     GameConsole.Write("[S] Spawning " + p.Character.Name + " at " + p.Position, ConsoleMessageTypes.Debug);
                     
@@ -318,7 +453,7 @@ namespace DiacloServer
                 case ProtocolClientToServer.MeleeAttack:
                     //Client is attacking an adjacent tile with a melee weapon
                     request = Serializer.ReadPoint(buffer);
-                    if (Server.PlayerAttackSquare(p, request))
+                    if (Server.ValidatePlayerAttackSquare(p, request))
                     {
                         //GameConsole.Write("s: " + p.Name + " attacks " + request.ToString());
                     }
@@ -337,12 +472,12 @@ namespace DiacloServer
                     //Player wants to respawn
                     if (p.Action == PlayerAction.Dead)
                     {
-                        p.SetLocation(0, FindSpawnPoint(0)); //town
                         p.CurrentHP = p.MaxHP;
-                        p.StartAction(PlayerAction.Idle, 0);
+                        p.SetIdle(false);
                         p.Direction = Direction.SouthEast;
-                        response = NetProtocol.S2C_Spawn(netServer, p.Area.ID, p.Position);
-                        sender.SendMessage(response, NetChannel.ReliableInOrder1);
+
+                        //Spawn
+                        SpawnPlayer(p, 0, FindSpawnPoint(0));
 
                         //Send updated status
                         sender.SendMessage(NetProtocol.S2C_PlayerStatus(netServer, p), NetChannel.ReliableInOrder1);
@@ -353,8 +488,14 @@ namespace DiacloServer
             }
         }
 
-        private static void PlayerSpawn(ServerPlayer p, ushort areaid, Point location)
+        private static void SpawnPlayer(ServerPlayer p, ushort areaid, Point location)
         {
+            if (p.ServerStatus == PlayerServerStatus.Playing)
+            {
+                //Cancel actions
+                p.SetIdle();
+            }
+
             //Set location
             p.SetLocation(areaid, location);
 
@@ -378,14 +519,13 @@ namespace DiacloServer
             return new Point(76, 69);
         }
 
-        public static bool PlayerAttackSquare(ServerPlayer p, Point pos)
+        public static bool ValidatePlayerAttackSquare(ServerPlayer p, Point pos)
         {
             bool result = false;
             
             if (p.MeleeAttack(pos))
             {
                 p.Direction = GameMechanics.AdjacentTileDirection(p.Position, pos);
-                GameConsole.Write("PlayerAttackSquare " + GetUptime().ToString());
                 result = true;
                 //sync other players   (todo)
             }
@@ -420,6 +560,7 @@ namespace DiacloServer
                 if (overlap > timeLeft)
                 {
                     p.FinishMove();
+                    p.SetIdle(false);
                 }
             }
             if (p.Walk(gameState, request))
@@ -428,8 +569,7 @@ namespace DiacloServer
                 //p.StartAction(PlayerAction.Walking, walkspeed);
                 //p.StartMove(request, GameMechanics.DurationToDurationsPerSecond(walkspeed));
 
-                //Aggro npc's in range of new tile
-                Server.NPCNotify(p,request);
+                OnPlayerEnterSquare(p, request);
                 return true;
             }
             else
@@ -437,6 +577,26 @@ namespace DiacloServer
                 return false;
             }
 
+        }
+
+        private static void OnPlayerEnterSquare(ServerPlayer p, Point request)
+        {
+            //Aggro npc's in range of new tile
+            Server.NPCNotify(p, request);
+
+            //Check for special properties in the requested square
+            SquareEntity entity = p.Area.GetSquare(request).Entity;
+            if (entity != null)
+            {
+                switch (entity.Type)
+                {
+                    //Teleporter
+                    case SquareEntityType.Trigger_Teleport:
+                        p.SetIdle();
+                        SpawnPlayer(p, (ushort)entity.TargetArea, entity.TargetPos);
+                        break;
+                }
+            }
         }
 
         private static void NPCNotify(Player p, Point request)
@@ -510,6 +670,16 @@ namespace DiacloServer
             //todo: optimize a bit (dont send attributes)
             NetBuffer b = NetProtocol.S2C_PlayerStatsUpdate(netServer, player);
             player.NetConnection.SendMessage(b, NetChannel.ReliableInOrder1);
+        }
+        /// <summary>
+        /// Issued when server changes the state of a player
+        /// </summary>
+        /// <param name="serverPlayer"></param>
+        internal static void OnPlayerStatusChanged(ServerPlayer serverPlayer)
+        {
+            //Inform player of his altered status
+            NetBuffer b = NetProtocol.S2C_PlayerStatus(netServer, serverPlayer);
+            SendToArea(b, serverPlayer.Area);
         }
     }
 }

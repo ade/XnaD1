@@ -30,6 +30,7 @@ namespace DiacloLib
         public Boolean PassableSight;
         public Point Position { get; set; }
         public Boolean Drawable { get; set; }
+        public SquareEntity Entity { get; set; }
         public Square()
         {
             PassablePlayer = true;

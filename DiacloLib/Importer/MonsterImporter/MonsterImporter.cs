@@ -14,6 +14,8 @@ namespace DiacloLib.Importer.MonsterImporter
         {
             MonsterTemplate[] ret = new MonsterTemplate[3];
             
+            //This part is intended to be replaced by a predefined database. Demo code follows.
+
             //Skeleton
             MonsterTemplate skeleton = new MonsterTemplate();
             skeleton.Index = 0;
@@ -35,8 +37,8 @@ namespace DiacloLib.Importer.MonsterImporter
             skeleton.HasTranslation = true;
             skeleton.HitFrame = 8;
             skeleton.Intelligence = 0;
-            skeleton.MaxDamage = 40;
-            skeleton.MinDamage = 1;
+            skeleton.MaxDamage = 4;
+            skeleton.MinDamage = 2;
             skeleton.MinDungeonLevel = 1;
             skeleton.MaxDungeonLevel = 2;
             skeleton.MinHP = 5;
@@ -101,16 +103,16 @@ namespace DiacloLib.Importer.MonsterImporter
             falspear.HasTranslation = true;
             falspear.HitFrame = 7;
             falspear.Intelligence = 0;
-            falspear.MaxDamage = 10;
-            falspear.MinDamage = 15;
+            falspear.MaxDamage = 15;
+            falspear.MinDamage = 10;
             falspear.MinDungeonLevel = 1;
             falspear.MaxDungeonLevel = 2;
-            falspear.MinHP = 20;
-            falspear.MaxHP = 40;
+            falspear.MinHP = 15;
+            falspear.MaxHP = 25;
             falspear.MonsterLevel = 4;
             falspear.Name = "Fallen one";
             falspear.SoundFile = @"Monsters\FalSpear\Phall%c%i.WAV";
-            falspear.ToHit = 40;
+            falspear.ToHit = 30;
             falspear.TranslationFile = @"Monsters\FalSpear\FallenT.TRN";
             falspear.Type = NPCType.Demon;
 
